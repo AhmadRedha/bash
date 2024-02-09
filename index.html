@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Screensaver</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+   <script src="script.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+ <div id="message"></div>
+  <script>
+    let stars = [];
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight, WEBGL);
+      for (let i = 0; i < 800; i++) {
+        stars[i] = new Star();
+      }
+    }
+
+    function draw() {
+      background(0);
+      translate(0, 0, 0);
+      for (let i = 0; i < stars.length; i++) {
+        stars[i].update();
+        stars[i].show();
+      }
+    }
+
+    class Star {
+      constructor() {
+        this.x = random(-width, width);
+        this.y = random(-height, height);
+        this.z = random(width);
+        this.pz = this.z;
+      }
+
+      update() {
+        this.z = this.z - 10;
+        if (this.z < 1) {
+          this.z = width;
+          this.x = random(-width, width);
+          this.y = random(-height, height);
+          this.pz = this.z;
+        }
+      }
+
+      show() {
+        fill(255);
+        noStroke();
+
+        let sx = map(this.x / this.z, 0, 1, 0, width);
+        let sy = map(this.y / this.z, 0, 1, 0, height);
+
+        let r = map(this.z, 0, width, 16, 0);
+        ellipse(sx, sy, r, r);
+
+        let px = map(this.x / this.pz, 0, 1, 0, width);
+        let py = map(this.y / this.pz, 0, 1, 0, height);
+
+        this.pz = this.z;
+
+        stroke(255);
+        line(px, py, sx, sy);
+      }
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+const myParam = urlParams.get('server');
+    
+    
+    const ws = new WebSocket("ws://localhost:8080"); // Replace with your actual port
+
+ws.onmessage = (event) => {
+  const message = event.data;
+  document.getElementById("message").textContent = message;
+ 
+};
+
+ws.onopen = () => {
+  console.log("WebSocket connection opened!");
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
+ws.onclose = () => {
+  console.log("WebSocket connection closed");
+};
+  </script>
+</body>
+</html>
