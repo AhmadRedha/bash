@@ -103,28 +103,31 @@ publish_key() {
 }
 
 handle_received_message() {
-    local received_message="$1"
-      echo "Received message: $received_message"
+  echo "AAAAAAAa"
+  local received_message="$1"
+  parsed_json=$(echo "$received_message" | jq .)
+  # Access elements using .key_name within the parsed_json variable
+  token=$(echo "$parsed_json" | jq '.token')
+  url=$(echo "$parsed_json" | jq '.url')
+  # ... and so on
+
+  echo "Parsed message:"
+  echo "Token: $token"
+  echo "URL: $url"
+  return 1;
 }
 
 subscribe_commands() {
-  # Connect to MQTT broker
-  if ! mqtt sub -h "$emqx_server_address" -p "$mqtt_port" -t "salam"; then
+  # Connect to MQTT broker with error handling
+  if ! mosquitto_sub -h "$emqx_server_address" -p "$mqtt_port" -t "command" -q 1 --quiet | while IFS= read -r message; do handle_received_message "$message"; done; then
     echo "Connection error: ECONNREFUSED. Retrying..."
     play_content  # Optional: Trigger notification/action for connection error
     sleep 5  # Wait before retrying
+    subscribe_commands  # Recursively retry subscription
     return 1  # Indicate error for potential retry logic
   fi
-
-  # Subscribe to topic and handle messages
-  while read -r message; do
-    handle_received_message "$message"
-  done < <(mqtt pub -h "$emqx_server_address" -p "$mqtt_port" -t "salam")
-
-  # Close connection (optional)
-  # mqtt unsub -h "$emqx_server_address" -p "$mqtt_port" -t "salam"
+  echo "Subscription successful."
 }
-
 get_client_id() {
   local unique_key
 
@@ -141,7 +144,7 @@ get_client_id() {
 }
 play_content() {
   while true; do
-    publish_key "register_bash" "$unique_key" 
+    publish_key "register" "$json_config"
     status=$?
     if [ $status -eq 0 ]; then
       kill "$offline_pid"
@@ -170,7 +173,11 @@ main() {
     unique_key=$(generate_unique_key)
     save_unique_key $unique_key
   fi
+  source config.sh $unique_key
   play_content
 
 }
+# Source the config file
+
+
 main

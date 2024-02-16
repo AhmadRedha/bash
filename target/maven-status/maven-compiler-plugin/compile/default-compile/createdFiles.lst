@@ -1,2 +1,9 @@
+ir/ds/config/MqttConfig.class
+ir/ds/service/RegisterService.class
+ir/ds/model/Registered.class
+ir/ds/config/RunLater.class
+ir/ds/dto/ClientConfigDTO.class
 ir/ds/config/SecurityConfiguration.class
 ir/ds/App.class
+ir/ds/config/MqttConfig$1.class
+ir/ds/config/MqttConfig$MyMqttCallback.class
